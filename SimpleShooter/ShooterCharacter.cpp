@@ -1,5 +1,7 @@
 #include "ShooterCharacter.h"
 
+#include "Gun.h"
+
 AShooterCharacter::AShooterCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -8,6 +10,19 @@ AShooterCharacter::AShooterCharacter()
 void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	auto* ActorMesh = GetMesh();
+	FName WeaponBoneName = TEXT("weapon_r");
+	int32 BoneIndex = ActorMesh->GetBoneIndex(WeaponBoneName);
+	if (BoneIndex != INDEX_NONE)
+	{
+		ActorMesh->HideBone(BoneIndex, EPhysBodyOp::PBO_None);
+	}
+
+	FName WeaponSocket = TEXT("WeaponSocket");
+	Gun = GetWorld()->SpawnActor<AGun>(GunClass);
+	Gun->AttachToComponent(ActorMesh, FAttachmentTransformRules::KeepRelativeTransform, WeaponSocket);
+	Gun->SetOwner(this);
 }
 
 void AShooterCharacter::Tick(float DeltaTime)
