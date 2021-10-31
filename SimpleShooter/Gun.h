@@ -12,6 +12,7 @@ class SIMPLESHOOTER_API AGun : public AActor
 public:
 	AGun();
 	virtual void Tick(float DeltaTime) override;
+	void PullTrigger();
 
 protected:
 	virtual void BeginPlay() override;
@@ -19,7 +20,12 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* Root;
-
 	UPROPERTY(VisibleAnywhere)
 	USkeletalMeshComponent* Mesh;
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* MuzzleEffect;
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* HitEffect;
+	UPROPERTY(EditAnywhere)
+	float MaxRange = 9999.9f;
 };

@@ -12,16 +12,14 @@ void AShooterCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	auto* ActorMesh = GetMesh();
-	FName WeaponBoneName = TEXT("weapon_r");
-	int32 BoneIndex = ActorMesh->GetBoneIndex(WeaponBoneName);
+	auto BoneIndex = ActorMesh->GetBoneIndex(TEXT("weapon_r"));
 	if (BoneIndex != INDEX_NONE)
 	{
 		ActorMesh->HideBone(BoneIndex, EPhysBodyOp::PBO_None);
 	}
 
-	FName WeaponSocket = TEXT("WeaponSocket");
 	Gun = GetWorld()->SpawnActor<AGun>(GunClass);
-	Gun->AttachToComponent(ActorMesh, FAttachmentTransformRules::KeepRelativeTransform, WeaponSocket);
+	Gun->AttachToComponent(ActorMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("WeaponSocket"));
 	Gun->SetOwner(this);
 }
 
@@ -39,16 +37,22 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction(TEXT("Shoot"), EInputEvent::IE_Pressed, this, &AShooterCharacter::Shoot);
 }
 
 void AShooterCharacter::MoveForward(float AxisValue)
 {
-	FVector Forward = GetActorForwardVector();
-	AddMovementInput(Forward * AxisValue);
+	auto ForwardVector = GetActorForwardVector();
+	AddMovementInput(ForwardVector * AxisValue);
 }
 
 void AShooterCharacter::MoveRight(float AxisValue)
 {
-	FVector Right = GetActorRightVector();
-	AddMovementInput(Right * AxisValue);
+	auto RightVector = GetActorRightVector();
+	AddMovementInput(RightVector * AxisValue);
+}
+
+void AShooterCharacter::Shoot()
+{
+	Gun->PullTrigger();
 }
