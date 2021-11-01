@@ -28,4 +28,6 @@ private:
 	UParticleSystem* HitEffect;
 	UPROPERTY(EditAnywhere)
 	float MaxRange = 9999.9f;
+	UPROPERTY(EditAnywhere)
+	float Damage = 10.0f;
 };

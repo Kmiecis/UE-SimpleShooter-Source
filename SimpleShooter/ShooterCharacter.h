@@ -15,6 +15,11 @@ public:
 	AShooterCharacter();
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+public:
+	UFUNCTION(BlueprintPure)
+	bool IsDead() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -27,7 +32,10 @@ private:
 private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AGun> GunClass;
-
 	UPROPERTY()
 	AGun* Gun;
+	UPROPERTY(EditDefaultsOnly)
+	float MaxHealth = 100.0f;
+	UPROPERTY(VisibleAnywhere)
+	float Health = 0.0f;
 };

@@ -24,11 +24,9 @@ void AGun::PullTrigger()
 {
 	UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, Mesh, TEXT("MuzzleFlashSocket"));
 
-	auto* OwnerPawn = Cast<APawn>(GetOwner());
-	if (OwnerPawn)
+	if (auto* OwnerPawn = Cast<APawn>(GetOwner()))
 	{
-		auto* OwnerController = OwnerPawn->GetController();
-		if (OwnerController)
+		if (auto* OwnerController = OwnerPawn->GetController())
 		{
 			FVector ViewLocation;
 			FRotator ViewRotation;
@@ -45,6 +43,12 @@ void AGun::PullTrigger()
 				auto HitRotation = (-ShotDirection).Rotation();
 
 				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitEffect, HitPoint, HitRotation);
+
+				if (auto* DamageActor = HitResult.GetActor())
+				{
+					auto DamageEvent = FPointDamageEvent(Damage, HitResult, ShotDirection, nullptr);
+					DamageActor->TakeDamage(Damage, DamageEvent, OwnerController, this);
+				}
 			}
 		}
 	}

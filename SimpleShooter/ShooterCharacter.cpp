@@ -7,22 +7,6 @@ AShooterCharacter::AShooterCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-void AShooterCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-
-	auto* ActorMesh = GetMesh();
-	auto BoneIndex = ActorMesh->GetBoneIndex(TEXT("weapon_r"));
-	if (BoneIndex != INDEX_NONE)
-	{
-		ActorMesh->HideBone(BoneIndex, EPhysBodyOp::PBO_None);
-	}
-
-	Gun = GetWorld()->SpawnActor<AGun>(GunClass);
-	Gun->AttachToComponent(ActorMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("WeaponSocket"));
-	Gun->SetOwner(this);
-}
-
 void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -38,6 +22,39 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction(TEXT("Shoot"), EInputEvent::IE_Pressed, this, &AShooterCharacter::Shoot);
+}
+
+void AShooterCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	Health = MaxHealth;
+
+	auto* ActorMesh = GetMesh();
+	auto BoneIndex = ActorMesh->GetBoneIndex(TEXT("weapon_r"));
+	if (BoneIndex != INDEX_NONE)
+	{
+		ActorMesh->HideBone(BoneIndex, EPhysBodyOp::PBO_None);
+	}
+
+	Gun = GetWorld()->SpawnActor<AGun>(GunClass);
+	Gun->AttachToComponent(ActorMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("WeaponSocket"));
+	Gun->SetOwner(this);
+}
+
+float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float DamageApplied = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	DamageApplied = FMath::Min(DamageApplied, Health);
+	Health -= DamageApplied;
+
+	return DamageApplied;
+}
+
+bool AShooterCharacter::IsDead() const
+{
+	return Health <= 0.0f;
 }
 
 void AShooterCharacter::MoveForward(float AxisValue)
