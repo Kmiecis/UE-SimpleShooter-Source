@@ -14,9 +14,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void PullTrigger();
 
-protected:
-	virtual void BeginPlay() override;
-
 private:
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* Root;

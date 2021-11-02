@@ -35,8 +35,17 @@ void AGun::PullTrigger()
 			auto ShotDirection = ViewRotation.Vector();
 			auto EndLocation = ViewLocation + ShotDirection * MaxRange;
 
+			FCollisionQueryParams CollisionQueryParams;
+			CollisionQueryParams.AddIgnoredActor(this);
+			CollisionQueryParams.AddIgnoredActor(OwnerPawn);
+
 			FHitResult HitResult;
-			bool HitSuccess = GetWorld()->LineTraceSingleByChannel(HitResult, ViewLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel1);
+			bool HitSuccess = GetWorld()->LineTraceSingleByChannel(
+				HitResult,
+				ViewLocation, EndLocation,
+				ECollisionChannel::ECC_GameTraceChannel1,
+				CollisionQueryParams
+			);
 			if (HitSuccess)
 			{
 				auto HitPoint = HitResult.ImpactPoint;
@@ -52,9 +61,4 @@ void AGun::PullTrigger()
 			}
 		}
 	}
-}
-
-void AGun::BeginPlay()
-{
-	Super::BeginPlay();
 }

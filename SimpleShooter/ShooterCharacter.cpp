@@ -1,6 +1,8 @@
 #include "ShooterCharacter.h"
 
+#include "Components/CapsuleComponent.h"
 #include "Gun.h"
+#include "SimpleShooterGameModeBase.h"
 
 AShooterCharacter::AShooterCharacter()
 {
@@ -49,7 +51,27 @@ float AShooterCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 	DamageApplied = FMath::Min(DamageApplied, Health);
 	Health -= DamageApplied;
 
+	if (IsDead())
+	{
+		if (auto* ActorCapsule = GetCapsuleComponent())
+		{
+			ActorCapsule->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+		}
+
+		if (auto* GameMode = GetWorld()->GetAuthGameMode<ASimpleShooterGameModeBase>())
+		{
+			GameMode->PawnKilled(this);
+		};
+
+		DetachFromControllerPendingDestroy();
+	}
+
 	return DamageApplied;
+}
+
+void AShooterCharacter::Shoot()
+{
+	Gun->PullTrigger();
 }
 
 bool AShooterCharacter::IsDead() const
@@ -67,9 +89,4 @@ void AShooterCharacter::MoveRight(float AxisValue)
 {
 	auto RightVector = GetActorRightVector();
 	AddMovementInput(RightVector * AxisValue);
-}
-
-void AShooterCharacter::Shoot()
-{
-	Gun->PullTrigger();
 }
