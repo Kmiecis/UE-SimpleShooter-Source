@@ -15,6 +15,10 @@ public:
 	void PullTrigger();
 
 private:
+	AController* GetOwnerController() const;
+	bool GunTrace(FHitResult& HitResult, FVector& ShotDirection);
+
+private:
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* Root;
 	UPROPERTY(VisibleAnywhere)
@@ -22,7 +26,11 @@ private:
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* MuzzleEffect;
 	UPROPERTY(EditAnywhere)
+	USoundBase* MuzzleSound;
+	UPROPERTY(EditAnywhere)
 	UParticleSystem* HitEffect;
+	UPROPERTY(EditAnywhere)
+	USoundBase* HitSound;
 	UPROPERTY(EditAnywhere)
 	float MaxRange = 9999.9f;
 	UPROPERTY(EditAnywhere)

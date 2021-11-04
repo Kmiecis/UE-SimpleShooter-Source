@@ -23,42 +23,58 @@ void AGun::Tick(float DeltaTime)
 void AGun::PullTrigger()
 {
 	UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, Mesh, TEXT("MuzzleFlashSocket"));
+	UGameplayStatics::SpawnSoundAttached(MuzzleSound, Mesh, TEXT("MuzzleFlashSocket"));
 
-	if (auto* OwnerPawn = Cast<APawn>(GetOwner()))
+	FHitResult HitResult;
+	FVector ShotDirection;
+	bool HitSuccess = GunTrace(HitResult, ShotDirection);
+	if (HitSuccess)
 	{
-		if (auto* OwnerController = OwnerPawn->GetController())
+		auto HitPoint = HitResult.ImpactPoint;
+		auto HitRotation = (-ShotDirection).Rotation();
+
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitEffect, HitPoint, HitRotation);
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, HitPoint, HitRotation);
+
+		if (auto* DamageActor = HitResult.GetActor())
 		{
-			FVector ViewLocation;
-			FRotator ViewRotation;
-			OwnerController->GetPlayerViewPoint(ViewLocation, ViewRotation);
-
-			auto ShotDirection = ViewRotation.Vector();
-			auto EndLocation = ViewLocation + ShotDirection * MaxRange;
-
-			FCollisionQueryParams CollisionQueryParams;
-			CollisionQueryParams.AddIgnoredActor(this);
-			CollisionQueryParams.AddIgnoredActor(OwnerPawn);
-
-			FHitResult HitResult;
-			bool HitSuccess = GetWorld()->LineTraceSingleByChannel(
-				HitResult,
-				ViewLocation, EndLocation,
-				ECollisionChannel::ECC_GameTraceChannel1,
-				CollisionQueryParams
-			);
-			if (HitSuccess)
-			{
-				auto HitPoint = HitResult.ImpactPoint;
-				auto HitRotation = (-ShotDirection).Rotation();
-
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitEffect, HitPoint, HitRotation);
-
-				if (auto* DamageActor = HitResult.GetActor())
-				{
-					auto DamageEvent = FPointDamageEvent(Damage, HitResult, ShotDirection, nullptr);
-					DamageActor->TakeDamage(Damage, DamageEvent, OwnerController, this);
-				}
-			}
+			auto DamageEvent = FPointDamageEvent(Damage, HitResult, ShotDirection, nullptr);
+			auto* OwnerController = GetOwnerController();
+			DamageActor->TakeDamage(Damage, DamageEvent, OwnerController, this);
 		}
 	}
+}
+
+AController* AGun::GetOwnerController() const
+{
+	if (auto* OwnerPawn = Cast<APawn>(GetOwner()))
+	{
+		return OwnerPawn->GetController();
+	}
+	return nullptr;
+}
+
+bool AGun::GunTrace(FHitResult& HitResult, FVector& ShotDirection)
+{
+	if (auto* OwnerController = GetOwnerController())
+	{
+		FVector ViewLocation;
+		FRotator ViewRotation;
+		OwnerController->GetPlayerViewPoint(ViewLocation, ViewRotation);
+
+		ShotDirection = ViewRotation.Vector();
+		auto EndLocation = ViewLocation + ShotDirection * MaxRange;
+
+		FCollisionQueryParams CollisionQueryParams;
+		CollisionQueryParams.AddIgnoredActor(this);
+		CollisionQueryParams.AddIgnoredActor(GetOwner());
+
+		return GetWorld()->LineTraceSingleByChannel(
+			HitResult,
+			ViewLocation, EndLocation,
+			ECollisionChannel::ECC_GameTraceChannel1,
+			CollisionQueryParams
+		);
+	}
+	return false;
 }
